@@ -1,9 +1,13 @@
-# INF-8239 · Unidad 02 · Proyecto NLP
+# INF-8239 — Ciencia de Datos II: Proyecto Base de PLN
 
-Autor académico: Edwin Ramón José Nolasco
-Replicado y realizado por: Manuel Mañana Santana
+**Asignatura:** INF-8239 - Ciencia de Datos II  
+**Unidad 02:** Procesamiento de Lenguaje Natural, redes y visión  
+**Autor / Estudiante:** Manuel De Jesus Mañana Santana  
+**Universidad:** Universidad Autónoma de Santo Domingo (UASD)  
+**Gestor de entorno:** `uv` (Python 3.12)  
+**Corpus Seleccionado:** Amazon Reviews Multi ES (`SetFit/amazon_reviews_multi_es`)  
 
-Proyecto base para LAB04–LAB06. No sustituya la comprensión por ejecución mecánica.
+---
 
 ## Inicio rápido
 
@@ -14,7 +18,17 @@ uv run pytest -q
 uv run python scripts/audit_data.py
 ```
 
-Copie `.env.example` como `.env` y configure el dataset aprobado.
+Copie `.env.example` como `.env` y configure el dataset approved.
+
+---
+
+## 📌 Descripción del Proyecto
+
+Este repositorio constituye la base reproducible para la Unidad 02 de PLN. Implementa la localización, evaluación, aprobación, descarga local, auditoría de calidad y validación automatizada mediante contratos de datos para un corpus masivo de clasificación de texto en español (200,000 registros).
+
+El proyecto está diseñado bajo estándares estrictos de **reproducibilidad, portabilidad local/nube y control de versiones**, garantizando la inmutabilidad de los datos crudos y la ejecución aislada sin dependencia fija del sistema operativo.
+
+---
 
 ## Evaluación y Selección del Corpus Público (Paso 4)
 
@@ -39,18 +53,76 @@ Copie `.env.example` como `.env` y configure el dataset aprobado.
 - **Aprobación de Candidate 1 (`SetFit/amazon_reviews_multi_es`):** Cumple con todos los requisitos de pertinencia en español, equilibrio de clases para evitar métricas engañosas (como el accuracy aislado), licencia abierta CC-BY-4.0 y fácil integración en los contratos de validación de datos.
 - **Descarte de Candidate 2 (`SMS Spam Collection`):** Se rechaza principalmente por estar restringido al idioma inglés, limitar el ámbito de análisis únicamente a mensajes SMS cortos binarios y presentar un marcado desbalance de clases.
 
-## Dataset
+---
 
-Complete `docs/DATASET_CARD.md`, el diccionario de datos (`docs/dataset_candidates.csv`), la licencia y el procedimiento de obtención.
-El archivo `data/sample/demo_text.csv` solamente comprueba la arquitectura.
+## 📁 Estructura del Repositorio
 
-## Entrenamiento
-
-```bash
-uv run python scripts/train_text.py
-uv run streamlit run app/streamlit_app.py
+```text
+INF8239_U02_NLP_Proyecto_Base_uv/
+├── .env.example              # Plantilla de variables de entorno
+├── .gitignore                # Reglas de exclusión para Git (.venv, cache, datos pesados)
+├── pyproject.toml            # Definición del proyecto y dependencias de uv
+├── uv.lock                   # Bloqueo de versiones exactas de dependencias
+├── requirements-colab.txt    # Exportación de dependencias para Google Colab
+├── README.md                 # Documentación principal del proyecto
+├── data/
+│   ├── raw/                  # Datos crudos descargados (data/raw/dataset.csv - excluido en git)
+│   ├── sample/               # Datos de demostración (demo_text.csv)
+│   └── processed/            # Datos limpios preparados para modelado
+├── docs/
+│   └── DATASET_CARD.md       # Ficha técnica y diccionario de datos del corpus
+├── scripts/
+│   ├── download_data.py      # Script automatizado de descarga
+│   └── audit_data.py         # Script de auditoría (Hash SHA-256, nulos, duplicados, distribución)
+├── src/
+│   └── inf8239_u02/          # Módulos y lógica reutilizable del proyecto
+└── tests/
+    └── test_data_contract.py # Pruebas unitarias y contratos de datos (pytest)
 ```
 
-## Interpretación
+---
 
-Toda conclusión debe separar observación, evidencia, interpretación y decisión.
+## 📊 Obtención y Auditoría del Dataset
+
+### 1. Descarga e Independización Local
+Para obtener el corpus masivo `SetFit/amazon_reviews_multi_es` (200,000 filas) y exportarlo a `data/raw/dataset.csv`:
+
+```powershell
+uv run python -c "from datasets import load_dataset; ds = load_dataset('SetFit/amazon_reviews_multi_es', split='train'); df = ds.to_pandas(); df.to_csv('data/raw/dataset.csv', index=False); print('Dataset guardado exitosamente con', len(df), 'filas')"
+```
+
+### 2. Ejecutar la Auditoría
+Valida el volumen de datos, valores nulos, duplicados, distribución de clases y longitud de texto:
+
+```powershell
+uv run python scripts/download_data.py
+uv run python scripts/audit_data.py
+```
+
+**Métricas del Corpus Auditado:**
+- **Hash SHA-256:** `45896e29a23e374cdb46962ab3fd1a3dd4101f7448ef9179832e13433392d3e0`
+- **Registros totales:** 200,000 filas y 4 columnas.
+- **Valores nulos:** 0 en `text` y `label`.
+- **Duplicados:** 1,736 registros (~0.87%).
+- **Balanceo de clases:** Perfectamente balanceado (20.0% por cada una de las 5 categorías: `0`, `1`, `2`, `3` y `4`).
+
+---
+
+## 🧪 Validación de Contratos de Datos
+
+Ejecuta las pruebas unitarias automatizadas con `pytest` para verificar la conformidad sintáctica del dataset:
+
+```powershell
+uv run pytest -q
+```
+
+---
+
+## 🌐 Portabilidad Local / Nube (Google Colab)
+
+1. **Sin datos pesados en Git:** La carpeta `data/raw/` y la carpeta `.venv/` están correctamente ignoradas en `.gitignore`.
+2. **Ejecución en Nube:** Para correr este proyecto en Google Colab o entornos sin `uv`, instala las dependencias utilizando el archivo exportado:
+   ```bash
+   pip install -r requirements-colab.txt
+   ```
+3. **Documentación:** Revisa la ficha técnica completa y el diccionario de variables en [`docs/DATASET_CARD.md`](docs/DATASET_CARD.md).
